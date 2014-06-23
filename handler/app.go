@@ -77,7 +77,25 @@ func GetVersion(db *xorm.Engine, params martini.Params, r render.Render, res *ht
   }
   var client redis.Client
   //get all keys
-  keyAll, _ := client.Keys(params["app"] + "@*")
+  keyAll, redisErr := client.Keys(params["app"] + "@*")
+  if redisErr != nil {
+    r.JSON(400, map[string]interface{}{"error": redisErr})
+    return
+  }
+  if keyAll == nil {
+    versionInMysql := new(model.Version)
+    has, errDb := db.Where("app=? and version=?", params["app"], versionNumber).Get(versionInMysql)
+    if errDb == nil && has {
+      versionJson, err := json.Marshal(versionInMysql)
+      if err != nil {
+        r.JSON(400, map[string]interface{}{"error": "version struct to json error"})
+        return
+      }
+      client.Set(params["app"]+"@"+strconv.Itoa(versionNumber), versionJson)
+    }
+    r.JSON(400, map[string]interface{}{"error": "the verison is newst!"})
+    return
+  }
   var versionArray = make([]int, len(keyAll))
   for i, _ := range versionArray {
     versionArray[i], _ = strconv.Atoi(strings.Split(keyAll[i], "@")[1])
