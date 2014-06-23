@@ -43,10 +43,10 @@ func main() {
   m.Use(Db())
   m.Use(render.Renderer())
   m.Group("/v1/updates", func(r martini.Router) {
-    // m.Get("/:app/:version", handler.GetVersion)
+    m.Get("/:app/:version", handler.GetVersion)
     m.Post("/:app", binding.Json(model.Version{}), handler.CreateVersion)
-    // m.Put("/:app/:version", handler.PutVersion)
-    // m.Delete("/:app/:version", handler.DelVersion)
+    m.Put("/:app/:version", handler.PutVersion)
+    m.Delete("/:app/:version", handler.DelVersion)
   })
   http.ListenAndServe(":3000", m)
 }

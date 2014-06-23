@@ -7,9 +7,9 @@ import (
 type Version struct {
   Id         int64
   App        int64
-  Version    int    `xorm:"INT"`
+  Version    int    `xorm:"int"`
   Name       string `xorm:"text"`
-  Updated    string `xorm:"DATE"`
+  Updated    string `xorm:"date"`
   Changed    string `xorm:"text"`
   Url        string `xorm:"text"`
   Client     string `xorm:"text"`

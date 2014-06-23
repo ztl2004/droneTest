@@ -1,7 +1,7 @@
 package handler
 
 import (
-  "bytes"
+  //"bytes"
   "github.com/arkors/update/model"
   "github.com/go-martini/martini"
   "github.com/go-xorm/xorm"
@@ -34,12 +34,11 @@ func CreateVersion(db *xorm.Engine, params martini.Params, version model.Version
     r.JSON(400, map[string]interface{}{"error": "Invalid json body "})
     return
   }
-  sql := "select * from version where app=" + params["app"] + " and version=" +
-    fmt.Println(sql)
-  results, err := db.Query(sql)
-  //fmt.Println(results)
-  if results != nil {
-    //fmt.Println("testRepeatid")
+  //sql := "select * from version where app=" + params["app"] + " and version=" +
+  //results, err := db.Query(sql)
+  versionBeforeInsert := new(model.Version)
+  has, errDb := db.Where("app=? and version=?", params["app"], version.Version).Get(versionBeforeInsert)
+  if has && errDb == nil {
     r.JSON(400, map[string]interface{}{"error": "The application's id already exist"})
     return
   } else {
@@ -49,38 +48,15 @@ func CreateVersion(db *xorm.Engine, params martini.Params, version model.Version
       r.JSON(400, map[string]interface{}{"error": "Database error"})
       return
     } else {
-      //Indert into redis
-      //sql := "select * from version where app=" + params["app"]
-      //result := new(model.Version)
-      //has, err := db.Sql(sql).Get(result)
-      //if err == nil && has {
       var client redis.Client
-      var buffer bytes.Buffer
-      //idTrans := strconv.FormatInt(result.Id, 10)
-      //appTrans := strconv.FormatInt(result.App, 10)
-      //buffer.WriteString("Id=" + idTrans + "|")
-      //buffer.WriteString("App=" + appTrans + "|")
-      //buffer.WriteString("Version=" + result.Version + "|")
-      //buffer.WriteString("Name=" + result.Name + "|")
-      //buffer.WriteString("Updated=" + String(result.Updated) + "|")
-      //buffer.WriteString("Changed=" + result.Changed + "|")
-      //buffer.WriteString("Client=" + result.Client + "|")
-      //buffer.WriteString("Url=" + result.Url + "|")
-      //buffer.WriteString("Compatible=" + result.Compatible)
-      //client.Set(appTrans+"@"+result.Version, []byte(buffer.String()))
-      buffer.WriteString("App=" + params["app"] + "|")
-      buffer.WriteString("Version=" + strconv.Itoa(version.Version) + "|")
-      buffer.WriteString("Name=" + version.Name + "|")
-      buffer.WriteString("Updated=" + version.Updated + "|")
-      buffer.WriteString("Changed=" + version.Changed + "|")
-      buffer.WriteString("Client=" + version.Client + "|")
-      buffer.WriteString("Url=" + version.Url + "|")
-      buffer.WriteString("Compatible=" + version.Compatible)
-      client.Set(params["app"]+"@"+strconv.Itoa(version.Version), []byte(buffer.String()))
+      versionJson, err := json.Marshal(version)
+      if err != nil {
+        r.JSON(400, map[string]interface{}{"error": "version struct to json error"})
+        return
+      }
+      client.Set(params["app"]+"@"+strconv.Itoa(version.Version), versionJson)
       r.JSON(201, version)
-      fmt.Println(version)
       return
-      // }
     }
   }
 }
@@ -113,66 +89,20 @@ func GetVersion(db *xorm.Engine, params martini.Params, r render.Render, res *ht
     return
   }
 
-  versionModelNew := new(model.Version)
+  var versionModelNew model.Version
   result, err := client.Get(params["app"] + "@" + strconv.Itoa(versionArray[len(keyAll)-1]))
   if err == nil && result != nil {
-    fmt.Println(string(result))
-    versionStringArray := strings.Split(string(result), "|")
-    for i, _ := range versionStringArray {
-      colum := strings.Split(versionStringArray[i], "=")[0]
-      value := strings.Split(versionStringArray[i], "=")[1]
-      fmt.Println(colum + "=" + value)
-      if colum == "Id" {
-        idTrans, _ := strconv.ParseInt(value, 0, 64)
-        versionModelNew.Id = idTrans
-      } else if colum == "App" {
-        versionModelNew.App = appId
-      } else if colum == "Version" {
-        versionModelNew.Version, _ = strconv.Atoi(value)
-      } else if colum == "Name" {
-        versionModelNew.Name = value
-      } else if colum == "Updated" {
-        versionModelNew.Updated = value
-      } else if colum == "Changed" {
-        versionModelNew.Changed = value
-      } else if colum == "Client" {
-        versionModelNew.Client = value
-      } else if colum == "Url" {
-        versionModelNew.Url = value
-      } else if colum == "Compatible" {
-        versionModelNew.Compatible = value
-      }
+    json2versionErr := json.Unmarshal(result, &versionModelNew)
+    if json2versionErr != nil {
+      r.JSON(404, map[string]interface{}{"error": "json trans struct error"})
     }
   }
-  versionModelOld := new(model.Version)
+  var versionModelOld model.Version
   result, err = client.Get(params["app"] + "@" + params["version"])
   if err == nil && result != nil {
-    fmt.Println(string(result))
-    versionStringArray := strings.Split(string(result), "|")
-    for i, _ := range versionStringArray {
-      colum := strings.Split(versionStringArray[i], "=")[0]
-      value := strings.Split(versionStringArray[i], "=")[1]
-      fmt.Println(colum + "=" + value)
-      if colum == "Id" {
-        idTrans, _ := strconv.ParseInt(value, 0, 64)
-        versionModelOld.Id = idTrans
-      } else if colum == "App" {
-        versionModelOld.App = appId
-      } else if colum == "Version" {
-        versionModelOld.Version, _ = strconv.Atoi(value)
-      } else if colum == "Name" {
-        versionModelOld.Name = value
-      } else if colum == "Updated" {
-        versionModelOld.Updated = value
-      } else if colum == "Changed" {
-        versionModelOld.Changed = value
-      } else if colum == "Client" {
-        versionModelOld.Client = value
-      } else if colum == "Url" {
-        versionModelOld.Url = value
-      } else if colum == "Compatible" {
-        versionModelOld.Compatible = value
-      }
+    json2versionErr := json.Unmarshal(result, &versionModelOld)
+    if json2versionErr != nil {
+      r.JSON(404, map[string]interface{}{"error": "json trans struct error"})
     }
   }
   upgrade := false
@@ -264,19 +194,12 @@ func UpdateApp(db *xorm.Engine, params martini.Params, version model.Version, r 
     return
   } else {
     var client redis.Client
-    var buffer bytes.Buffer
-    buffer.WriteString("App=" + params["app"] + "|")
-    buffer.WriteString("Version=" + params["version"] + "|")
-    buffer.WriteString("Name=" + version.Name + "|")
-    //buffer.WriteString("Updated=" + String(result.Updated) + "|")
-    buffer.WriteString("Changed=" + version.Changed + "|")
-    buffer.WriteString("Client=" + version.Client + "|")
-    buffer.WriteString("Url=" + version.Url + "|")
-    buffer.WriteString("Compatible=" + version.Compatible)
-    client.Set(params["app"]+"@"+params["version"], []byte(buffer.String()))
-    val, _ := client.Get(params["app"] + "@" + params["version"])
-    key := params["app"] + "@" + params["version"]
-    fmt.Println("key=="+key, "val==="+string(val))
+    versionJson, err := json.Marshal(version)
+    if err != nil {
+      r.JSON(400, map[string]interface{}{"error": "version struct to json error"})
+      return
+    }
+    client.Set(params["app"]+"@"+strconv.Itoa(version.Version), versionJson)
     r.JSON(200, version)
     return
   }
@@ -294,17 +217,16 @@ func DelVersion(db *xorm.Engine, params martini.Params, version model.Version, r
     r.JSON(400, map[string]interface{}{"error": "Invalid request header,it should be include 'X-Arkors-Application-log' and 'X-Arkors-Application-Client'."})
     return
   }
-  sql := "select * from version where app=" + params["app"] + " and version='" + params["version"] + "'"
   result := new(model.Version)
-  has, err := db.Sql(sql).Get(result)
+  has, err := db.Where("app=? and version=?", params["app"], params["version"]).Get(result)
   if err != nil {
     r.JSON(400, map[string]interface{}{"error": "Datebase Error"})
     return
   }
   if has {
-    //db.In("Id", id).Delete(result)
-    _, err = db.Exec("delete from version where app=" + params["app"] + " and version='" + params["version"] + "'")
-    if err == nil {
+    deleteVersion := new(model.Version)
+    affect, err = db.Where("app=? and version=?", params["app"], params["version"]).Delete(deleteVersion)
+    if affect == 1 && err == nil {
       var client redis.Client
       fmt.Println(params["app"] + "@" + params["version"])
       client.Del(params["app"] + "@" + params["version"])
