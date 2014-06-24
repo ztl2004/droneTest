@@ -34,8 +34,6 @@ func CreateVersion(db *xorm.Engine, params martini.Params, version model.Version
     r.JSON(400, map[string]interface{}{"error": "Invalid json body "})
     return
   }
-  //sql := "select * from version where app=" + params["app"] + " and version=" +
-  //results, err := db.Query(sql)
   versionBeforeInsert := new(model.Version)
   has, errDb := db.Where("app=? and version=?", params["app"], version.Version).Get(versionBeforeInsert)
   if has && errDb == nil {
@@ -48,6 +46,7 @@ func CreateVersion(db *xorm.Engine, params martini.Params, version model.Version
       r.JSON(400, map[string]interface{}{"error": "Database error"})
       return
     } else {
+      //写入redis内存库
       var client redis.Client
       versionJson, err := json.Marshal(version)
       if err != nil {
@@ -76,12 +75,14 @@ func GetVersion(db *xorm.Engine, params martini.Params, r render.Render, res *ht
     return
   }
   var client redis.Client
-  //get all keys
+  //获取内存库中所有的key值
   keyAll, redisErr := client.Keys(params["app"] + "@*")
   if redisErr != nil {
-    r.JSON(400, map[string]interface{}{"error": redisErr})
+    fmt.Println(redisErr)
+    r.JSON(400, map[string]interface{}{"error": "redis error"})
     return
   }
+  //内存库key值不存在，查询mysql确认是否存在，如果存在，把数据重新插入到redis中
   if keyAll == nil {
     versionInMysql := new(model.Version)
     has, errDb := db.Where("app=? and version=?", params["app"], versionNumber).Get(versionInMysql)
@@ -131,42 +132,7 @@ func GetVersion(db *xorm.Engine, params martini.Params, r render.Render, res *ht
     }
   }
   if upgrade {
-    timeArr := strings.Split(versionModelNew.Updated, " ")
-    year, _ := strconv.Atoi(strings.Split(timeArr[0], "-")[0])
-    month, _ := strconv.Atoi(strings.Split(timeArr[0], "-")[1])
-    var goMonth time.Month
-    switch month {
-    case 1:
-      goMonth = time.January
-    case 2:
-      goMonth = time.February
-    case 3:
-      goMonth = time.March
-    case 4:
-      goMonth = time.April
-    case 5:
-      goMonth = time.May
-    case 6:
-      goMonth = time.June
-    case 7:
-      goMonth = time.July
-    case 8:
-      goMonth = time.August
-    case 9:
-      goMonth = time.September
-    case 10:
-      goMonth = time.October
-    case 11:
-      goMonth = time.November
-    case 12:
-      goMonth = time.December
-    }
-    day, _ := strconv.Atoi(strings.Split(timeArr[0], "-")[2])
-    hour, _ := strconv.Atoi(strings.Split(timeArr[1], ":")[0])
-    min, _ := strconv.Atoi(strings.Split(timeArr[1], ":")[1])
-    ss, _ := strconv.Atoi(strings.Split(timeArr[1], ":")[2])
-    t2 := time.Date(year, goMonth, day, hour, min, ss, 0, time.UTC)
-    fmt.Println(t2.String())
+    t2 := time.Parse("2006-01-02 15:04:05", versionModelNew.Updated)
     t1 := time.Now()
     timeResult := t1.After(t2)
     if timeResult {
