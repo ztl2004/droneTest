@@ -1,6 +1,7 @@
 package handler
 
 import (
+  "encoding/json"
   "github.com/arkors/update/model"
   "github.com/go-martini/martini"
   "github.com/go-xorm/xorm"
@@ -15,7 +16,7 @@ import (
 
 func CreateVersion(db *xorm.Engine, params martini.Params, version model.Version, r render.Render, res *http.Request) {
   appId, err := strconv.ParseInt(params["app"], 0, 64)
-  versionId, _ := strconv.Itoa(version.Version)
+  versionId := strconv.Itoa(version.Version)
   if err != nil {
     r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "The application's id must be numrical"})
     return
@@ -25,7 +26,7 @@ func CreateVersion(db *xorm.Engine, params martini.Params, version model.Version
     return
   }
   versionBeforeInsert := new(model.Version)
-  has, errDb := db.Where("app=? and version=?", params["app"], version.Version).Get(versionBeforeInsert)
+  has, errDb := db.Where("app=? and version=?", appId, versionId).Get(versionBeforeInsert)
   if has && errDb == nil {
     r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "The application's id already exist"})
     return
@@ -72,7 +73,7 @@ func GetVersion(db *xorm.Engine, params martini.Params, r render.Render, res *ht
   //内存库key值不存在，查询mysql确认是否存在，如果存在，把数据重新插入到redis中
   if keyAll == nil {
     versionInMysql := new(model.Version)
-    has, errDb := db.Where("app=? and version=?", params["app"], versionNumber).Get(versionInMysql)
+    has, errDb := db.Where("app=? and version=?", appId, versionNumber).Get(versionInMysql)
     if errDb == nil && has {
       versionJson, err := json.Marshal(versionInMysql)
       if err != nil {
@@ -119,7 +120,10 @@ func GetVersion(db *xorm.Engine, params martini.Params, r render.Render, res *ht
     }
   }
   if upgrade {
-    t2 := time.Parse("2006-01-02 15:04:05", versionModelNew.Updated)
+    t2, err := time.Parse("2006-01-02 15:04:05", versionModelNew.Updated)
+    if err != nil {
+      r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "Prase Time Error"})
+    }
     t1 := time.Now()
     timeResult := t1.After(t2)
     if timeResult {
@@ -135,7 +139,7 @@ func GetVersion(db *xorm.Engine, params martini.Params, r render.Render, res *ht
   }
 }
 
-func UpdateApp(db *xorm.Engine, params martini.Params, version model.Version, r render.Render, res *http.Request) {
+func UpdateVersion(db *xorm.Engine, params martini.Params, version model.Version, r render.Render, res *http.Request) {
   appId, errAppId := strconv.ParseInt(params["app"], 0, 64)
   if errAppId != nil {
     r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "The application's id must be numrical"})
@@ -182,7 +186,7 @@ func DelVersion(db *xorm.Engine, params martini.Params, version model.Version, r
   }
   if has {
     deleteVersion := new(model.Version)
-    affect, err = db.Where("app=? and version=?", params["app"], params["version"]).Delete(deleteVersion)
+    affect, err := db.Where("app=? and version=?", params["app"], params["version"]).Delete(deleteVersion)
     if affect == 1 && err == nil {
       var client redis.Client
       client.Del(params["app"] + "@" + params["version"])

@@ -1,6 +1,7 @@
 package main
 
 import (
+  "encoding/json"
   "github.com/arkors/update/handler"
   "github.com/arkors/update/model"
   "github.com/go-martini/martini"
@@ -78,7 +79,7 @@ func main() {
   m.Group("/v1/updates", func(r martini.Router) {
     m.Get("/:app/:version", handler.GetVersion)
     m.Post("/:app", binding.Json(model.Version{}), handler.CreateVersion)
-    m.Put("/:app/:version", binding.Json(model.Version{}), handler.PutVersion)
+    m.Put("/:app/:version", binding.Json(model.Version{}), handler.UpdateVersion)
     m.Delete("/:app/:version", binding.Json(model.Version{}), handler.DelVersion)
   })
   http.ListenAndServe(":3000", m)
