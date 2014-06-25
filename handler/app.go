@@ -120,12 +120,12 @@ func GetVersion(db *xorm.Engine, params martini.Params, r render.Render, res *ht
     }
   }
   if upgrade {
-    t2, err := time.Parse("2006-01-02 15:04:05", upgradeVersion.Updated)
+    upgradeTime, err := time.Parse("2006-01-02 15:04:05", upgradeVersion.Updated)
     if err != nil {
       r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "Prase Time Error"})
     }
-    t1 := time.Now()
-    timeResult := t1.After(t2)
+     currentTime := time.Now()
+    timeResult := currentTime.After(upgradeTime)
     if timeResult {
       r.JSON(http.StatusOK, upgradeVersion)
       return
