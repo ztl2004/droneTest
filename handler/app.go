@@ -96,38 +96,38 @@ func GetVersion(db *xorm.Engine, params martini.Params, r render.Render, res *ht
     return
   }
 
-  var versionModelNew model.Version
+  var upgradeVersion model.Version
   result, err := client.Get(params["app"] + "@" + strconv.Itoa(versionArray[len(keyAll)-1]))
   if err == nil && result != nil {
-    json2versionErr := json.Unmarshal(result, &versionModelNew)
+    json2versionErr := json.Unmarshal(result, &upgradeVersion)
     if json2versionErr != nil {
       r.JSON(http.StatusNotFound, map[string]interface{}{"error": "json trans struct error"})
     }
   }
-  var versionModelOld model.Version
+  var currentVersion model.Version
   result, err = client.Get(params["app"] + "@" + params["version"])
   if err == nil && result != nil {
-    json2versionErr := json.Unmarshal(result, &versionModelOld)
+    json2versionErr := json.Unmarshal(result, &currentVersion)
     if json2versionErr != nil {
       r.JSON(http.StatusNotFound, map[string]interface{}{"error": "json trans struct error"})
     }
   }
   upgrade := false
-  appNameArr := strings.Split(versionModelNew.Compatible, " ")
+  appNameArr := strings.Split(upgradeVersion.Compatible, " ")
   for _, nameValue := range appNameArr {
-    if nameValue == versionModelOld.Name {
+    if nameValue == currentVersion.Name {
       upgrade = true
     }
   }
   if upgrade {
-    t2, err := time.Parse("2006-01-02 15:04:05", versionModelNew.Updated)
+    t2, err := time.Parse("2006-01-02 15:04:05", upgradeVersion.Updated)
     if err != nil {
       r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "Prase Time Error"})
     }
     t1 := time.Now()
     timeResult := t1.After(t2)
     if timeResult {
-      r.JSON(http.StatusOK, versionModelNew)
+      r.JSON(http.StatusOK, upgradeVersion)
       return
     } else {
       r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "The App version can't in right time to upgrade"})
