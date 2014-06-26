@@ -12,6 +12,7 @@ import (
   "strconv"
   "strings"
   "time"
+  "fmt"
 )
 
 func CreateVersion(db *xorm.Engine, params martini.Params, version model.Version, r render.Render, res *http.Request) {
@@ -95,7 +96,6 @@ func GetVersion(db *xorm.Engine, params martini.Params, r render.Render, res *ht
     r.JSON(http.StatusNotFound, map[string]interface{}{"error": "The application version is newest!"})
     return
   }
-
   var upgradeVersion model.Version
   result, err := client.Get(params["app"] + "@" + strconv.Itoa(versionArray[len(keyAll)-1]))
   if err == nil && result != nil {

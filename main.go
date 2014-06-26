@@ -1,16 +1,16 @@
 package main
 
 import (
-  "encoding/json"
   "github.com/arkors/update/handler"
   "github.com/arkors/update/model"
   "github.com/go-martini/martini"
   "github.com/go-xorm/xorm"
-  "github.com/martini-contrib/binding"
   "github.com/martini-contrib/render"
   "io/ioutil"
   "log"
   "net/http"
+  "fmt"
+  "encoding/json"
 )
 
 var db *xorm.Engine
@@ -36,7 +36,8 @@ func Db() martini.Handler {
 func VerifyJSONBody() martini.Handler {
   return func(c martini.Context, w http.ResponseWriter, r *http.Request) {
     data, err := ioutil.ReadAll(r.Body)
-
+    fmt.Println(string(data))
+    fmt.Println(err)
     if len(data) == 0 {
       return
     }
@@ -46,15 +47,15 @@ func VerifyJSONBody() martini.Handler {
       w.Header().Set("Content-Type", "application/json")
       w.Write([]byte("{\"error\":\"Invalid request body.\"}"))
     }
-
     var version model.Version
-    err = json.Unmarshal(data, &version)
-    if err != nil {
+    json2versionErr:=json.Unmarshal(data,&version)
+    if json2versionErr!=nil {
       w.WriteHeader(http.StatusBadRequest)
       w.Header().Set("Content-Type", "application/json")
-      w.Write([]byte("{\"error\":\"Invalid request body, it should be JSON format.\"}"))
+      w.Write([]byte("{\"error\":\"can't trans to version\"}"))
+    }else{
+      c.Map(version)
     }
-
   }
 }
 
@@ -78,9 +79,9 @@ func main() {
   m.Use(render.Renderer())
   m.Group("/v1/updates", func(r martini.Router) {
     m.Get("/:app/:version", handler.GetVersion)
-    m.Post("/:app", binding.Json(model.Version{}), handler.CreateVersion)
-    m.Put("/:app/:version", binding.Json(model.Version{}), handler.UpdateVersion)
-    m.Delete("/:app/:version", binding.Json(model.Version{}), handler.DelVersion)
+    m.Post("/:app",handler.CreateVersion)
+    m.Put("/:app/:version", handler.UpdateVersion)
+    m.Delete("/:app/:version",handler.DelVersion)
   })
   http.ListenAndServe(":3000", m)
 }
