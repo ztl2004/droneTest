@@ -12,7 +12,6 @@ import (
   "strconv"
   "strings"
   "time"
-  "fmt"
 )
 
 func CreateVersion(db *xorm.Engine, params martini.Params, version model.Version, r render.Render, res *http.Request) {
@@ -91,7 +90,6 @@ func GetVersion(db *xorm.Engine, params martini.Params, r render.Render, res *ht
     versionArray[i], _ = strconv.Atoi(strings.Split(keyAll[i], "@")[1])
   }
   sort.Ints(versionArray)
-
   if versionArray[len(keyAll)-1] == versionNumber {
     r.JSON(http.StatusNotFound, map[string]interface{}{"error": "The application version is newest!"})
     return
@@ -151,7 +149,7 @@ func UpdateVersion(db *xorm.Engine, params martini.Params, version model.Version
   }
   version.App = appId
   version.Version, _ = strconv.Atoi(params["version"])
-  has, err := db.In("App", appId).Update(version)
+  has, err := db.Where("app=? and verison=?", appId,params["version"]).Update(version)
   if err != nil {
     r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "Database Error"})
     return
@@ -172,7 +170,7 @@ func UpdateVersion(db *xorm.Engine, params martini.Params, version model.Version
   }
 }
 
-func DelVersion(db *xorm.Engine, params martini.Params, version model.Version, r render.Render, res *http.Request) {
+func DelVersion(db *xorm.Engine, params martini.Params, r render.Render, res *http.Request) {
   _, err := strconv.ParseInt(params["app"], 0, 64)
   if err != nil {
     r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "The application's id must be numrical"})
