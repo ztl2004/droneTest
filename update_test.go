@@ -36,6 +36,7 @@ func init(){
       fmt.Println("fail to create database connnection %v",err)
       return
   }
+  root_db.Exec("DROP DATABASE IF EXISTS `arkors_update_test`")
   root_db.Exec("CREATE DATABASE `arkors_update_test` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci")
   root_db.Exec("insert into mysql.user(Host,User,Password) values('localhost','arkors_test',password('arkors_test'))")
   root_db.Exec("flush privileges")
@@ -61,8 +62,8 @@ func init(){
   client.Set("234@1",[]byte("{\"Id\":2,\"App\":234,\"Version\":1,\"Name\":\"0.3.3\",\"Updated\":\"2013-11-10 00:00:00\",\"Changed\":\"1. New design application icon. \\n 2. Fix some bugs. \\n \",\"Url\":\"http//file.arkors.com/releases/demo-lasttest.apk\",\"Client\":\"Android\",\"Compatible\":\"0.3.3 0.3.1 0.2.x 0.2.x\"}"))
   client.Set("234@2",[]byte("{\"Id\":3,\"App\":234,\"Version\":2,\"Name\":\"0.3.3\",\"Updated\":\"2014-11-10 00:00:00\",\"Changed\":\"1. New design application icon. \\n 2. Fix some bugs. \\n \",\"Url\":\"http//file.arkors.com/releases/demo-lasttest.apk\",\"Client\":\"Android\",\"Compatible\":\"0.3.3 0.3.1 0.2.x 0.2.x\"}"))
   client.Set("235@1",[]byte("{\"Id\":4,\"App\":235,\"Version\":1,\"Name\":\"0.3.3\",\"Updated\":\"2013-11-10 00:00:00\",\"Changed\":\"1. New design application icon. \\n 2. Fix some bugs. \\n \",\"Url\":\"http//file.arkors.com/releases/demo-lasttest.apk\",\"Client\":\"Android\",\"Compatible\":\"0.3.3 0.3.1 0.2.x 0.2.x\"}"))
-  client.Set("235@2",[]byte("{\"Id\":5,\"App\":235,\"Version\":2,\"Name\":\"0.3.3\",\"Updated\":\"2014-11-10 00:00:00\",\"Changed\":\"1. New design application icon. \\n 2. Fix some bugs. \\n \",\"Url\":\"http//file.arkors.com/releases/demo-lasttest.apk\",\"Client\":\"Android\",\"Compatible\":\"0.3.3 0.3.1 0.2.x 0.2.x\"}"))
-  client.Set("236@1",[]byte("{\"Id\":6,\"App\":236,\"Version\":2,\"Name\":\"0.3.3\",\"Updated\":\"2014-11-10 00:00:00\",\"Changed\":\"1. New design application icon. \\n 2. Fix some bugs. \\n \",\"Url\":\"http//file.arkors.com/releases/demo-lasttest.apk\",\"Client\":\"Android\",\"Compatible\":\"0.3.3 0.3.1 0.2.x 0.2.x\"}"))
+  client.Set("235@2",[]byte("{\"Id\":5,\"App\":235,\"Version\":2,\"Name\":\"0.3.3\",\"Updated\":\"2013-11-10 00:00:00\",\"Changed\":\"1. New design application icon. \\n 2. Fix some bugs. \\n \",\"Url\":\"http//file.arkors.com/releases/demo-lasttest.apk\",\"Client\":\"Android\",\"Compatible\":\"0.3.3 0.3.1 0.2.x 0.2.x\"}"))
+  client.Set("236@1",[]byte("{\"Id\":6,\"App\":236,\"Version\":2,\"Name\":\"0.3.3\",\"Updated\":\"2013-11-10 00:00:00\",\"Changed\":\"1. New design application icon. \\n 2. Fix some bugs. \\n \",\"Url\":\"http//file.arkors.com/releases/demo-lasttest.apk\",\"Client\":\"Android\",\"Compatible\":\"0.3.3 0.3.1 0.2.x 0.2.x\"}"))
   var xormErr error
   xormdb,xormErr = xorm.NewEngine("mysql","arkors_test:arkors_test@/arkors_update_test?charset=utf8")
   if xormErr != nil {
@@ -72,7 +73,7 @@ func init(){
     log.Fatalf("Fail to sync test database: %v\n", xormErr)
   }
 
-  xormdb.ShowSQL=true
+  //xormdb.ShowSQL=true
 }
 
 func useDb() martini.Handler {
