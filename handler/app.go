@@ -12,21 +12,21 @@ import (
   "strconv"
   "strings"
   "time"
+  "fmt"
 )
 
 func CreateVersion(db *xorm.Engine, params martini.Params, version model.Version, r render.Render, res *http.Request) {
   appId, err := strconv.ParseInt(params["app"], 0, 64)
-  versionId := strconv.Itoa(version.Version)
   if err != nil {
     r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "The application's id must be numrical"})
     return
   }
-  if version.Version == 0 || version.Name == "" || version.Changed == "" || version.Url == "" || version.Client == "" || version.Compatible == "" || version.Updated == "" {
+  if version.VersionId == 0 || version.Name == "" || version.Changed == "" || version.Url == "" || version.Client == "" || version.Compatible == "" || version.Updated == "" {
     r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "Invalid json body "})
     return
   }
   versionBeforeInsert := new(model.Version)
-  has, errDb := db.Where("app=? and version=?", appId, versionId).Get(versionBeforeInsert)
+  has, errDb := db.Where("app=?",appId).And("version_id=?",version.VersionId).Get(versionBeforeInsert)
   if has && errDb == nil {
     r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "The application's id already exist"})
     return
@@ -44,7 +44,7 @@ func CreateVersion(db *xorm.Engine, params martini.Params, version model.Version
         r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "version struct to json error"})
         return
       }
-      client.Set(params["app"]+"@"+strconv.Itoa(version.Version), versionJson)
+      client.Set(params["app"]+"@"+strconv.Itoa(version.VersionId), versionJson)
       r.JSON(http.StatusCreated, version)
       return
     }
@@ -73,7 +73,7 @@ func GetVersion(db *xorm.Engine, params martini.Params, r render.Render, res *ht
   //内存库key值不存在，查询mysql确认是否存在，如果存在，把数据重新插入到redis中
   if keyAll == nil {
     versionInMysql := new(model.Version)
-    has, errDb := db.Where("app=? and version=?", appId, versionNumber).Get(versionInMysql)
+    has, errDb := db.Where("app=?",appId).And("version_id=?",versionNumber).Get(versionInMysql)
     if errDb == nil && has {
       versionJson, err := json.Marshal(versionInMysql)
       if err != nil {
@@ -82,7 +82,7 @@ func GetVersion(db *xorm.Engine, params martini.Params, r render.Render, res *ht
       }
       client.Set(params["app"]+"@"+strconv.Itoa(versionNumber), versionJson)
     }
-    r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "the verison is newst!"})
+    r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "the version is newst!"})
     return
   }
   var versionArray = make([]int, len(keyAll))
@@ -143,18 +143,17 @@ func UpdateVersion(db *xorm.Engine, params martini.Params, version model.Version
     r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "The application's id must be numrical"})
     return
   }
-  if version.Version == 0 || version.Name == "" || version.Changed == "" || version.Url == "" || version.Client == "" || version.Compatible == "" {
+  if version.VersionId == 0 || version.Name == "" || version.Changed == "" || version.Url == "" || version.Client == "" || version.Compatible == "" {
     r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "Invalid json body "})
     return
   }
   version.App = appId
-  version.Version, _ = strconv.Atoi(params["version"])
-  has, err := db.Where("app=? and verison=?", appId,params["version"]).Update(version)
+  has, err := db.Where("app=?",appId).And("version_id=?", version.VersionId).Update(version)
   if err != nil {
     r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "Database Error"})
     return
   }
-  if has == 0 {
+  if has==0 {
     r.JSON(http.StatusNotFound, map[string]interface{}{"error": "Not found any version records"})
     return
   } else {
@@ -164,27 +163,33 @@ func UpdateVersion(db *xorm.Engine, params martini.Params, version model.Version
       r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "version struct to json error"})
       return
     }
-    client.Set(params["app"]+"@"+strconv.Itoa(version.Version), versionJson)
+    client.Set(params["app"]+"@"+strconv.Itoa(version.VersionId), versionJson)
     r.JSON(http.StatusOK, version)
     return
   }
 }
 
 func DelVersion(db *xorm.Engine, params martini.Params, r render.Render, res *http.Request) {
-  _, err := strconv.ParseInt(params["app"], 0, 64)
-  if err != nil {
+  appId, err := strconv.ParseInt(params["app"], 0, 64)
+  versionNumber, versionErr := strconv.Atoi(params["version"])
+  if err != nil || versionErr!=nil {
     r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "The application's id must be numrical"})
     return
   }
   result := new(model.Version)
-  has, err := db.Where("app=? and version=?", params["app"], params["version"]).Get(result)
+  result.App=appId
+  result.VersionId=versionNumber
+  has, err := db.Where("app=?",appId).And("version_id=?",versionNumber).Get(result)
   if err != nil {
+    fmt.Println(err)
     r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "Datebase Error"})
     return
   }
   if has {
     deleteVersion := new(model.Version)
-    affect, err := db.Where("app=? and version=?", params["app"], params["version"]).Delete(deleteVersion)
+    deleteVersion.App=appId
+    deleteVersion.VersionId=versionNumber
+    affect, err := db.Delete(deleteVersion)
     if affect == 1 && err == nil {
       var client redis.Client
       client.Del(params["app"] + "@" + params["version"])
