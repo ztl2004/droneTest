@@ -7,7 +7,7 @@ How to build?
 
 The project build with [redis](https://github.com/hoisie/redis),[martini](https://github.com/go-martini/martini), [martini-render](https://github.com/martini-contrib/render), 
 [mysql](https://github.com/go-sql-driver/mysql) and
-[xorm](https://github.com/go-xorm/xorm),
+[xorm](https://github.com/go-xorm/xorm)
 
 Install [redis](https://github.com/hoisie/redis)
 ,[martini](https://github.com/go-martini/martini)
