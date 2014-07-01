@@ -5,11 +5,9 @@ The update module of Ark
 How to build?
 =============
 
-The project build with [redis](https://github.com/hoisie/redis). 
-The project build with [martini](https://github.com/go-martini/martini). 
-The project build with [martini-render](https://github.com/martini-contrib/render). 
-The project build with [mysql](https://github.com/go-sql-driver/mysql). 
-The project build with [xorm](https://github.com/go-xorm/xorm). 
+The project build with [redis](https://github.com/hoisie/redis). [martini](https://github.com/go-martini/martini). [martini-render](https://github.com/martini-contrib/render). 
+[mysql](https://github.com/go-sql-driver/mysql). 
+[xorm](https://github.com/go-xorm/xorm). 
 
 Install [redis](https://github.com/hoisie/redis)
 Install [martini](https://github.com/go-martini/martini)
