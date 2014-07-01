@@ -6,14 +6,14 @@ How to build?
 =============
 
 The project build with [redis](https://github.com/hoisie/redis),[martini](https://github.com/go-martini/martini), [martini-render](https://github.com/martini-contrib/render), 
-[mysql](https://github.com/go-sql-driver/mysql),
+[mysql](https://github.com/go-sql-driver/mysql) and
 [xorm](https://github.com/go-xorm/xorm),
 
 Install [redis](https://github.com/hoisie/redis)
-\n Install [martini](https://github.com/go-martini/martini)
-\n Install [martini-render](https://github.com/martini-contrib/render)
-\n Install [mysql](https://github.com/go-sql-driver/mysql)
-\n Install [xorm](https://github.com/go-xorm/xorm)
+,[martini](https://github.com/go-martini/martini)
+,[martini-render](https://github.com/martini-contrib/render)
+,[mysql](https://github.com/go-sql-driver/mysql)
+and [xorm](https://github.com/go-xorm/xorm)
 ```
 go get -u github.com/hoisie/redis
 go get -u github.com/go-martini/martini
