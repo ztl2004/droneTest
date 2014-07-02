@@ -90,6 +90,7 @@ var _ = Describe("Testing Update AppVersion Create", func() {
     m.Use(useDb())
     m.Use(VerifyJSONBody())
     m.Use(VerifyHTTPHeader())
+    m.Use(RedisDb())
     m.Use(render.Renderer())
     m.Group("/v1/updates", func(r martini.Router) {
       r.Post("/:app",handler.CreateVersion)
@@ -119,6 +120,7 @@ var _ = Describe("Testing Update AppVersion Create", func() {
     m := martini.Classic()
     m.Use(render.Renderer())
     m.Use(useDb())
+    m.Use(RedisDb())
     m.Use(VerifyJSONBody())
     m.Use(VerifyHTTPHeader())
     m.Group("/v1/updates", func(r martini.Router) {
@@ -153,6 +155,7 @@ var _ = Describe("Testing Update AppVersion Create", func() {
     m.Use(VerifyJSONBody())
     m.Use(VerifyHTTPHeader())
     m.Use(useDb())
+    m.Use(RedisDb())
     m.Group("/v1/updates", func(r martini.Router) {
       r.Post("/:app", handler.CreateVersion)
     })
@@ -182,6 +185,7 @@ var _ = Describe("Testing Update AppVersion Create", func() {
     m.Use(useDb())
     m.Use(VerifyJSONBody())
     m.Use(VerifyHTTPHeader())
+    m.Use(RedisDb())
     m.Group("/v1/updates", func(r martini.Router) {
       r.Post("/:app", handler.CreateVersion)
     })
@@ -213,6 +217,7 @@ var _ = Describe("Testing Update AppVersion Create", func() {
     m.Use(useDb())
     m.Use(VerifyJSONBody())
     m.Use(VerifyHTTPHeader())
+    m.Use(RedisDb())
     m.Group("/v1/updates", func(r martini.Router) {
       r.Post("/:app",handler.CreateVersion)
     })
@@ -245,6 +250,7 @@ var _ = Describe("Testing Update App Get Version Information", func() {
     m.Use(VerifyHTTPHeader())
     m.Use(render.Renderer())
     m.Use(useDb())
+    m.Use(RedisDb())
     m.Group("/v1/updates", func(r martini.Router) {
       r.Get("/:app/:version",handler.GetVersion)
     })
@@ -272,6 +278,7 @@ var _ = Describe("Testing Update App Get Version Information", func() {
     m.Use(useDb())
     //m.Use(VerifyJSONBody())
     m.Use(VerifyHTTPHeader())
+    m.Use(RedisDb())
     m.Use(render.Renderer())
     m.Group("/v1/updates", func(r martini.Router) {
       r.Get("/:app/:version",handler.GetVersion)
@@ -305,6 +312,7 @@ var _ = Describe("Testing Update App Get Version Information", func() {
     //m.Use(VerifyJSONBody())
     m.Use(VerifyHTTPHeader())
     m.Use(render.Renderer())
+    m.Use(RedisDb())
     m.Use(useDb())
     m.Group("/v1/updates", func(r martini.Router) {
       r.Get("/:app/:version",handler.GetVersion)
@@ -338,6 +346,7 @@ var _ = Describe("Testing Update App Get Version Information", func() {
     m.Use(VerifyHTTPHeader())
     m.Use(render.Renderer())
     m.Use(useDb())
+    m.Use(RedisDb())
     m.Group("/v1/updates", func(r martini.Router) {
       r.Get("/:app/:version",handler.GetVersion)
     })
@@ -371,6 +380,7 @@ var _ = Describe("Testing Update App Get Version Information", func() {
     m.Use(VerifyHTTPHeader())
     m.Use(render.Renderer())
     m.Use(useDb())
+    m.Use(RedisDb())
     m.Group("/v1/updates", func(r martini.Router) {
       r.Get("/:app/:version",handler.GetVersion)
     })
@@ -405,6 +415,7 @@ var _ = Describe("Testing Updates App Update Application Infomation Put", func()
     m.Use(VerifyHTTPHeader())
     m.Use(render.Renderer())
     m.Use(useDb())
+    m.Use(RedisDb())
     m.Group("/v1/updates", func(r martini.Router) {
       r.Put("/:app",handler.UpdateVersion)
     })
@@ -433,6 +444,7 @@ var _ = Describe("Testing Updates App Update Application Infomation Put", func()
     m.Use(VerifyHTTPHeader())
     m.Use(render.Renderer())
     m.Use(useDb())
+    m.Use(RedisDb())
     m.Group("/v1/updates", func(r martini.Router) {
       r.Put("/:app",handler.UpdateVersion)
     })
@@ -461,6 +473,7 @@ var _ = Describe("Testing Updates App Update Application Infomation Put", func()
     m.Use(VerifyJSONBody())
     m.Use(render.Renderer())
     m.Use(useDb())
+    m.Use(RedisDb())
     m.Group("/v1/updates", func(r martini.Router) {
       r.Put("/:app", handler.UpdateVersion)
     })
@@ -491,6 +504,7 @@ var _ = Describe("Testing Updates App Update Application Infomation Put", func()
     m.Use(VerifyJSONBody())
     m.Use(render.Renderer())
     m.Use(useDb())
+    m.Use(RedisDb())
     m.Group("/v1/updates", func(r martini.Router) {
       r.Put("/:app",handler.UpdateVersion)
     })
@@ -522,6 +536,7 @@ var _ = Describe("Testing Update App Delete Version", func() {
     //m.Use(VerifyJSONBody())
     m.Use(render.Renderer())
     m.Use(useDb())
+    m.Use(RedisDb())
     m.Group("/v1/updates", func(r martini.Router) {
       r.Delete("/:app/:version",handler.DelVersion)
     })
@@ -549,6 +564,7 @@ var _ = Describe("Testing Update App Delete Version", func() {
     //m.Use(VerifyJSONBody())
     m.Use(render.Renderer())
     m.Use(useDb())
+    m.Use(RedisDb())
     m.Group("/v1/updates", func(r martini.Router) {
       r.Delete("/:app/:version", handler.DelVersion)
     })
@@ -577,6 +593,7 @@ var _ = Describe("Testing Update App Delete Version", func() {
     //m.Use(VerifyJSONBody())
     m.Use(render.Renderer())
     m.Use(useDb())
+    m.Use(RedisDb())
     m.Group("/v1/updates", func(r martini.Router) {
       r.Delete("/:app/:version", handler.DelVersion)
     })
@@ -608,6 +625,7 @@ var _ = Describe("Testing Update App Delete Version", func() {
     //m.Use(VerifyJSONBody())
     m.Use(render.Renderer())
     m.Use(useDb())
+    m.Use(RedisDb())
     m.Group("/v1/updates", func(r martini.Router) {
       r.Delete("/:app/:version", handler.DelVersion)
     })

@@ -10,9 +10,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+   "github.com/hoisie/redis"
 )
 
 var db *xorm.Engine
+var redisClient redis.Client
 
 func init() {
 	var err error
@@ -32,6 +34,13 @@ func init() {
 func Db() martini.Handler {
 	return func(c martini.Context) {
 		c.Map(db)
+	}
+}
+
+func RedisDb() martini.Handler {
+	return func(c martini.Context) {
+    redisClient.Addr="127.0.0.1:6379"
+		c.Map(redisClient)
 	}
 }
 
@@ -81,6 +90,7 @@ func main() {
 	m.Use(Db())
 	m.Use(VerifyJSONBody())
 	m.Use(VerifyHTTPHeader())
+  m.Use(RedisDb())
 	m.Use(render.Renderer())
 	m.Group("/v1/updates", func(r martini.Router) {
 		m.Get("/:app/:version", handler.GetVersion)

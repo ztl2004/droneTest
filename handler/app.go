@@ -15,7 +15,7 @@ import (
   "fmt"
 )
 
-func CreateVersion(db *xorm.Engine, params martini.Params, version model.Version, r render.Render, res *http.Request) {
+func CreateVersion(db *xorm.Engine, params martini.Params, version model.Version, r render.Render,client redis.Client, res *http.Request) {
   appId, err := strconv.ParseInt(params["app"], 0, 64)
   if err != nil {
     r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "The application's id must be numrical"})
@@ -38,7 +38,6 @@ func CreateVersion(db *xorm.Engine, params martini.Params, version model.Version
       return
     } else {
       //写入redis内存库
-      var client redis.Client
       versionJson, err := json.Marshal(version)
       if err != nil {
         r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "version struct to json error"})
@@ -50,7 +49,7 @@ func CreateVersion(db *xorm.Engine, params martini.Params, version model.Version
     }
   }
 }
-func GetVersion(db *xorm.Engine, params martini.Params, r render.Render, res *http.Request) {
+func GetVersion(db *xorm.Engine, params martini.Params, r render.Render,client redis.Client,res *http.Request) {
   appId, errAppId := strconv.ParseInt(params["app"], 0, 64)
   versionNumber, versionErr := strconv.Atoi(params["version"])
   if errAppId != nil && versionErr != nil {
@@ -63,7 +62,6 @@ func GetVersion(db *xorm.Engine, params martini.Params, r render.Render, res *ht
     r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "Invalid request header,it should be include 'id' and 'Token'"})
     return
   }
-  var client redis.Client
   //获取内存库中所有的key值
   keyAll, redisErr := client.Keys(params["app"] + "@*")
   if redisErr != nil {
@@ -137,7 +135,7 @@ func GetVersion(db *xorm.Engine, params martini.Params, r render.Render, res *ht
   }
 }
 
-func UpdateVersion(db *xorm.Engine, params martini.Params, version model.Version, r render.Render, res *http.Request) {
+func UpdateVersion(db *xorm.Engine, params martini.Params, version model.Version, r render.Render,client redis.Client,res *http.Request) {
   appId, errAppId := strconv.ParseInt(params["app"], 0, 64)
   if errAppId != nil {
     r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "The application's id must be numrical"})
@@ -157,7 +155,6 @@ func UpdateVersion(db *xorm.Engine, params martini.Params, version model.Version
     r.JSON(http.StatusNotFound, map[string]interface{}{"error": "Not found any version records"})
     return
   } else {
-    var client redis.Client
     versionJson, err := json.Marshal(version)
     if err != nil {
       r.JSON(http.StatusBadRequest, map[string]interface{}{"error": "version struct to json error"})
@@ -169,7 +166,7 @@ func UpdateVersion(db *xorm.Engine, params martini.Params, version model.Version
   }
 }
 
-func DelVersion(db *xorm.Engine, params martini.Params, r render.Render, res *http.Request) {
+func DelVersion(db *xorm.Engine, params martini.Params, r render.Render,client redis.Client,res *http.Request) {
   appId, err := strconv.ParseInt(params["app"], 0, 64)
   versionNumber, versionErr := strconv.Atoi(params["version"])
   if err != nil || versionErr!=nil {
@@ -191,7 +188,6 @@ func DelVersion(db *xorm.Engine, params martini.Params, r render.Render, res *ht
     deleteVersion.VersionId=versionNumber
     affect, err := db.Delete(deleteVersion)
     if affect == 1 && err == nil {
-      var client redis.Client
       client.Del(params["app"] + "@" + params["version"])
       r.JSON(http.StatusOK, result)
       return
