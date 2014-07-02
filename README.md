@@ -44,7 +44,7 @@ set redis in main.go and update_test.go
 ```
 redisClient.Addr="127.0.0.1:6379"
 ```
-Notice:
+Notice
 ===================================
 You might have problem when you run go test second,you must execute the following command.
 ```
