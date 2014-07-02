@@ -34,10 +34,14 @@ FLUSH PRIVILEGES;
 
 Before run go test
 ===================================
-you need to set your mysql root/password and redis's port in update_test.go
+you need to set your mysql root/password and redis's port in program 
 
+set mysql in update_test.go
 ```
 root_db, err := sql.Open("mysql", "root:@/")
-
+```
+set redis in main.go and update_test.go
+```
+redisClient.Addr="127.0.0.1:6379"
 ```
 
