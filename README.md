@@ -44,4 +44,9 @@ set redis in main.go and update_test.go
 ```
 redisClient.Addr="127.0.0.1:6379"
 ```
-
+Notice:
+===================================
+You might have problem when you run go test second,you must execute the following command.
+```
+drop database arkors_update_test
+```
