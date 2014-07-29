@@ -2,25 +2,30 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/arkors/update/handler"
-	"github.com/arkors/update/model"
-	"github.com/go-martini/martini"
-	"github.com/go-xorm/xorm"
-	"github.com/martini-contrib/render"
 	"io/ioutil"
 	"log"
 	"net/http"
-   "github.com/hoisie/redis"
+
+	"github.com/arkors/oauth/utils"
+	"github.com/arkors/update/handler"
+	"github.com/arkors/update/logInfo"
+	"github.com/arkors/update/model"
+	"github.com/go-martini/martini"
+	"github.com/go-xorm/xorm"
+	"github.com/hoisie/redis"
+	"github.com/martini-contrib/render"
 )
 
 var db *xorm.Engine
 var redisClient redis.Client
+var logChan chan string
+var sys_log_level logInfo.LEVEL
 
 func init() {
 	var err error
 
-  db, err = xorm.NewEngine("mysql", "arkors:arkors@/arkors_update?charset=utf8")
-  db.ShowSQL = true
+	db, err = xorm.NewEngine("mysql", "arkors:arkors@/arkors_update?charset=utf8")
+	db.ShowSQL = true
 
 	if err != nil {
 		log.Fatalf("Fail to create engine: %v\n", err)
@@ -29,6 +34,17 @@ func init() {
 	if err = db.Sync(new(model.Version)); err != nil {
 		log.Fatalf("Fail to sync database: %v\n", err)
 	}
+
+	logChan = make(chan string, 1024)
+
+	//读取日志配置文件
+	var config map[string]string
+	config, err = utils.LoadConfig("update.conf")
+	if err != nil {
+		log.Fatalf("Fail to read configuration : %v\n", err)
+	}
+	log_level_config := config["LOG_LEVEL"]
+	sys_log_level = logInfo.LevelMapping[log_level_config]
 }
 
 func Db() martini.Handler {
@@ -39,8 +55,15 @@ func Db() martini.Handler {
 
 func RedisDb() martini.Handler {
 	return func(c martini.Context) {
-    redisClient.Addr="127.0.0.1:6379"
+		redisClient.Addr = "127.0.0.1:6379"
 		c.Map(redisClient)
+	}
+}
+
+func InitParams() martini.Handler {
+	return func(c martini.Context) {
+		c.Map(logChan)
+		c.Map(sys_log_level)
 	}
 }
 
@@ -48,7 +71,7 @@ func VerifyJSONBody() martini.Handler {
 	return func(c martini.Context, w http.ResponseWriter, r *http.Request) {
 		data, err := ioutil.ReadAll(r.Body)
 		if len(data) == 0 {
-			if r.Method == "GET" || r.Method == "DELETE"{
+			if r.Method == "GET" || r.Method == "DELETE" {
 
 			} else {
 				return
@@ -86,11 +109,15 @@ func VerifyHTTPHeader() martini.Handler {
 }
 
 func main() {
+	//启动发送日志进程
+	go logInfo.Sendlog(logChan)
+
 	m := martini.Classic()
 	m.Use(Db())
 	m.Use(VerifyJSONBody())
 	m.Use(VerifyHTTPHeader())
-  m.Use(RedisDb())
+	m.Use(RedisDb())
+	m.Use(InitParams())
 	m.Use(render.Renderer())
 	m.Group("/v1/updates", func(r martini.Router) {
 		m.Get("/:app/:version", handler.GetVersion)
