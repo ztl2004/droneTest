@@ -50,9 +50,9 @@ func Sendlog(logChan chan string) {
 		log_data := <-(logChan)
 		var logModel Log
 		json.Unmarshal([]byte(log_data), &logModel)
-		request, _ := http.NewRequest("POST", "http://192.168.0.109:3001/v1/log", bytes.NewReader([]byte(log_data)))
+		request, _ := http.NewRequest("POST", "http://log.arkors.com/v1/log", bytes.NewReader([]byte(log_data)))
 		request.Header.Set("X-Arkors-Application-Log", logModel.Log)
-		request.Header.Set("X-Arkors-Application-Client", "127.0.0.1,OAUTH")
+		request.Header.Set("X-Arkors-Application-Client", "127.0.0.1,UPDATE")
 		request.Header.Set("Accept", "application/json")
 		client := &http.Client{}
 		resp, err := client.Do(request)

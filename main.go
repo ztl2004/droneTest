@@ -125,5 +125,5 @@ func main() {
 		m.Put("/:app/:version", handler.UpdateVersion)
 		m.Delete("/:app/:version", handler.DelVersion)
 	})
-	http.ListenAndServe(":3000", m)
+	http.ListenAndServe(":3001", m)
 }
