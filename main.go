@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/arkors/log/logmodel"
 	"github.com/arkors/oauth/utils"
 	"github.com/arkors/update/handler"
-	"github.com/arkors/update/logInfo"
 	"github.com/arkors/update/model"
 	"github.com/go-martini/martini"
 	"github.com/go-xorm/xorm"
@@ -18,8 +18,8 @@ import (
 
 var db *xorm.Engine
 var redisClient redis.Client
-var logChan chan string
-var sys_log_level logInfo.LEVEL
+var logChanP *chan string
+var sys_log_level string
 
 func init() {
 	var err error
@@ -35,7 +35,8 @@ func init() {
 		log.Fatalf("Fail to sync database: %v\n", err)
 	}
 
-	logChan = make(chan string, 1024)
+	logChan := make(chan string, 1024)
+	logChanP = &logChan
 
 	//读取日志配置文件
 	var config map[string]string
@@ -44,7 +45,7 @@ func init() {
 		log.Fatalf("Fail to read configuration : %v\n", err)
 	}
 	log_level_config := config["LOG_LEVEL"]
-	sys_log_level = logInfo.LevelMapping[log_level_config]
+	sys_log_level = log_level_config
 }
 
 func Db() martini.Handler {
@@ -62,7 +63,7 @@ func RedisDb() martini.Handler {
 
 func InitParams() martini.Handler {
 	return func(c martini.Context) {
-		c.Map(logChan)
+		c.Map(logChanP)
 		c.Map(sys_log_level)
 	}
 }
@@ -110,7 +111,7 @@ func VerifyHTTPHeader() martini.Handler {
 
 func main() {
 	//启动发送日志进程
-	go logInfo.Sendlog(logChan)
+	go logmodel.Sendlog(logChanP)
 
 	m := martini.Classic()
 	m.Use(Db())
