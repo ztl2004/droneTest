@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/arkors/log/logmodel"
+	logmodel "github.com/arkors/log/model"
 	"github.com/arkors/update/model"
 	"github.com/go-martini/martini"
 	"github.com/go-xorm/xorm"

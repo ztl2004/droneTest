@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/arkors/log/logmodel"
+	logmodel "github.com/arkors/log/model"
 	"github.com/arkors/oauth/utils"
 	"github.com/arkors/update/handler"
 	"github.com/arkors/update/model"
