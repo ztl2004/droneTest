@@ -111,7 +111,7 @@ func VerifyHTTPHeader() martini.Handler {
 
 func main() {
 	//启动发送日志进程
-	go logmodel.Sendlog(logChanP)
+	go logmodel.Sendlog(logChanP, "http://log.arkors.com")
 
 	m := martini.Classic()
 	m.Use(Db())
