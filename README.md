@@ -50,3 +50,7 @@ You might have problem when you run go test second,you must execute the followin
 ```
 drop database arkors_update_test
 ```
+
+CI With Drone
+===================================
+Add CI service with drone.io
